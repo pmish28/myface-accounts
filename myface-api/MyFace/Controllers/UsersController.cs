@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System;
+using Microsoft.AspNetCore.Mvc;
+using MyFace.Helpers;
 using MyFace.Models.Request;
 using MyFace.Models.Response;
 using MyFace.Repositories;
@@ -10,7 +12,6 @@ namespace MyFace.Controllers
     public class UsersController : ControllerBase
     {
         private readonly IUsersRepo _users;
-
         public UsersController(IUsersRepo users)
         {
             _users = users;
@@ -37,10 +38,10 @@ namespace MyFace.Controllers
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
-            }
-            
-            var user = _users.Create(newUser);
-
+            }   
+            Tuple<string,byte[]> saltPassword = HashPassword.GenerateHashPassword(newUser.Password);
+            newUser.Password = saltPassword.Item1;            
+            var user = _users.Create(newUser,saltPassword.Item2);
             var url = Url.Action("GetById", new { id = user.Id });
             var responseViewModel = new UserResponse(user);
             return Created(url, responseViewModel);
