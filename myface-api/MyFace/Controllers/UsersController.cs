@@ -12,7 +12,6 @@ namespace MyFace.Controllers
     public class UsersController : ControllerBase
     {
         private readonly IUsersRepo _users;
-
         public UsersController(IUsersRepo users)
         {
             _users = users;

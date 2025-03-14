@@ -4,3 +4,4 @@ bin/
 obj/
 /MyFace/myface.db
 /MyFace/myface.db-*
+*.sqbpro
