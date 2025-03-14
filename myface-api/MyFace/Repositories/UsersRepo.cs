@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using MyFace.Helpers;
 using MyFace.Models.Database;
 using MyFace.Models.Request;
 
@@ -10,7 +12,7 @@ namespace MyFace.Repositories
         IEnumerable<User> Search(UserSearchRequest search);
         int Count(UserSearchRequest search);
         User GetById(int id);
-        User Create(CreateUserRequest newUser,byte[] salt);
+        User Create(CreateUserRequest newUser);
         User Update(int id, UpdateUserRequest update);
         void Delete(int id);
     }
@@ -57,8 +59,9 @@ namespace MyFace.Repositories
                 .Single(user => user.Id == id);
         }
 
-        public User Create(CreateUserRequest newUser,byte[] salt)
+        public User Create(CreateUserRequest newUser)
         {
+            Tuple<string,byte[]> saltPassword = HashPassword.GenerateHashPassword(newUser.Password);            
             var insertResponse = _context.Users.Add(new User
             {
                 FirstName = newUser.FirstName,
@@ -67,8 +70,8 @@ namespace MyFace.Repositories
                 Username = newUser.Username,
                 ProfileImageUrl = newUser.ProfileImageUrl,
                 CoverImageUrl = newUser.CoverImageUrl,
-                Hashed_password =newUser.Password,
-                Salt = salt
+                Hashed_password =saltPassword.Item1,
+                Salt = saltPassword.Item2
             });
             _context.SaveChanges();
 

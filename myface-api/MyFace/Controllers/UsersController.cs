@@ -20,6 +20,8 @@ namespace MyFace.Controllers
         [HttpGet("")]
         public ActionResult<UserListResponse> Search([FromQuery] UserSearchRequest searchRequest)
         {
+            string authData = Authorization.IsUserAuthorized();
+            Console.WriteLine("AuthData is: " + authData);
             var users = _users.Search(searchRequest);
             var userCount = _users.Count(searchRequest);
             return UserListResponse.Create(searchRequest, users, userCount);
@@ -38,10 +40,8 @@ namespace MyFace.Controllers
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
-            }   
-            Tuple<string,byte[]> saltPassword = HashPassword.GenerateHashPassword(newUser.Password);
-            newUser.Password = saltPassword.Item1;            
-            var user = _users.Create(newUser,saltPassword.Item2);
+            }                       
+            var user = _users.Create(newUser);
             var url = Url.Action("GetById", new { id = user.Id });
             var responseViewModel = new UserResponse(user);
             return Created(url, responseViewModel);
