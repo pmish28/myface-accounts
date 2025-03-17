@@ -3,7 +3,7 @@ using System.Text;
 
 namespace MyFace.Helpers;
 
-public class Authorization
+public class AuthorizationHelper
 {
     public static string  DecodeAuthorizationHeader(string authorizationHeader)
     {

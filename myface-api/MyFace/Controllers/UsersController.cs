@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MyFace.Helpers;
+using MyFace.Models;
 using MyFace.Models.Request;
 using MyFace.Models.Response;
 using MyFace.Repositories;
@@ -8,6 +11,7 @@ using MyFace.Repositories;
 namespace MyFace.Controllers
 {
     [ApiController]
+    [Authorize]
     [Route("/users")]
     public class UsersController : ControllerBase
     {
@@ -17,12 +21,29 @@ namespace MyFace.Controllers
             _users = users;
         }
 
-        
-        [HttpGet("")]
-        public ActionResult<UserListResponse> Search([FromQuery] UserSearchRequest searchRequest, [FromHeader] string authInformation)
+
+        [AllowAnonymous]
+        [HttpPost("authenticate")]
+        public IActionResult Authenticate([FromBody]AuthenticateModel model)
         {
-            authInformation = "Basic dGVzdC11c2VyOnNlY3JldA==";
-            string authData = Authorization.DecodeAuthorizationHeader(authInformation);
+            var user = _users.Authenticate(model.Username, model.Password);
+
+            if (user == null)
+                return BadRequest(new { message = "Username or password is incorrect" });
+
+            return Ok(user);
+        }
+
+        
+        [HttpGet("authenticate")]
+        // [Authorize(AuthenticationSchemes = "Basic")]
+        [Authorize]
+        public ActionResult<UserListResponse> Search([FromQuery] UserSearchRequest searchRequest) //, [FromHeader] string Authorization
+        {
+            
+            // Console.WriteLine("Authorization value is: " + authorization);
+            string authInformation = "Basic dGVzdC11c2VyOnNlY3JldA==";
+            string authData = AuthorizationHelper.DecodeAuthorizationHeader(authInformation);
             bool isUserAuthorised = _users.IsUserAuthorised(authData.Split(':')[0], authData.Split(':')[1]);
             Console.WriteLine("isUserAuthorised: " + isUserAuthorised);
             var users = _users.Search(searchRequest);

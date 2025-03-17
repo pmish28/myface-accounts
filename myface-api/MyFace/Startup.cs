@@ -1,11 +1,14 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using MyFace.Repositories;
+using Microsoft.AspNetCore.Authentication;
 
 namespace MyFace
 {
@@ -39,7 +42,29 @@ namespace MyFace
             });
 
             services.AddControllers();
+             // configure basic authentication 
+         //   services.AddAuthentication("BasicAuthentication")
+              //  .AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>("BasicAuthentication", null);
 
+            // (config =>
+            // {
+            //     var policy = new AuthorizationPolicyBuilder()
+            //                     .RequireAuthenticatedUser()
+            //                     .Build();
+            //     config.Filters.Add(new AuthorizeFilter(policy));
+            // });
+            // services.AddAuthorization(options =>
+            // {
+            //     options.FallbackPolicy = new AuthorizationPolicyBuilder()
+            //         .RequireAuthenticatedUser()
+            //         .Build();
+            // });
+            // services.AddScoped<IAuthorizationHandler,UserAuthorizationHandler>();
+            services.AddAuthentication(options =>
+        {
+            options.DefaultAuthenticateScheme = "BasicAuthentication";//Defaults.AuthenticationScheme; // Or your chosen scheme
+            options.DefaultChallengeScheme = "BasicAuthentication";// JwtBearerDefaults.AuthenticationScheme;
+        });
             services.AddTransient<IInteractionsRepo, InteractionsRepo>();
             services.AddTransient<IPostsRepo, PostsRepo>();
             services.AddTransient<IUsersRepo, UsersRepo>();
@@ -59,10 +84,13 @@ namespace MyFace
             }
 
             app.UseHttpsRedirection();
+            
 
             app.UseRouting();
 
             app.UseCors(CORS_POLICY_NAME);
+            app.UseAuthentication();
+            app.UseAuthorization();
 
             app.UseEndpoints(endpoints => endpoints.MapControllers());
         }

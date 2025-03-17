@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
 using MyFace.Helpers;
 using MyFace.Models.Database;
 using MyFace.Models.Request;
@@ -16,6 +18,7 @@ namespace MyFace.Repositories
         User Create(CreateUserRequest newUser);
         User Update(int id, UpdateUserRequest update);
         void Delete(int id);
+        User Authenticate(string userName, string password);
     }
     
     public class UsersRepo : IUsersRepo
@@ -26,6 +29,19 @@ namespace MyFace.Repositories
         {
             _context = context;
         }
+
+        public User Authenticate(string username, string password)
+        {
+            var user = _context.Users.SingleOrDefault(x => x.Username == username && x.Hashed_password == password);
+
+            // return null if user not found
+            if (user == null)
+                return null;
+
+            // authentication successful so return user details without password
+            return user;
+        }
+
         
         public IEnumerable<User> Search(UserSearchRequest search)
         {
