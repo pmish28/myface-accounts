@@ -20,4 +20,15 @@ public class HashPassword{
             numBytesRequested: 256 / 8));
         return new Tuple<string,byte[]> (hashed,salt);
     }
+
+    public static string GenerateHashPasswordWithExistingSalt(string password,byte[] salt)
+    {
+        string hashed = Convert.ToBase64String(KeyDerivation.Pbkdf2(
+            password: password,
+            salt: salt,
+            prf: KeyDerivationPrf.HMACSHA256,
+            iterationCount: 100000,
+            numBytesRequested: 256 / 8));
+        return hashed;
+    }
 }

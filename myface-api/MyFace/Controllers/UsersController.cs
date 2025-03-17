@@ -16,12 +16,15 @@ namespace MyFace.Controllers
         {
             _users = users;
         }
+
         
         [HttpGet("")]
-        public ActionResult<UserListResponse> Search([FromQuery] UserSearchRequest searchRequest)
+        public ActionResult<UserListResponse> Search([FromQuery] UserSearchRequest searchRequest, [FromHeader] string authInformation)
         {
-            string authData = Authorization.IsUserAuthorized();
-            Console.WriteLine("AuthData is: " + authData);
+            authInformation = "Basic dGVzdC11c2VyOnNlY3JldA==";
+            string authData = Authorization.DecodeAuthorizationHeader(authInformation);
+            bool isUserAuthorised = _users.IsUserAuthorised(authData.Split(':')[0], authData.Split(':')[1]);
+            Console.WriteLine("isUserAuthorised: " + isUserAuthorised);
             var users = _users.Search(searchRequest);
             var userCount = _users.Count(searchRequest);
             return UserListResponse.Create(searchRequest, users, userCount);
@@ -40,7 +43,7 @@ namespace MyFace.Controllers
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
-            }                       
+            }
             var user = _users.Create(newUser);
             var url = Url.Action("GetById", new { id = user.Id });
             var responseViewModel = new UserResponse(user);
@@ -58,7 +61,7 @@ namespace MyFace.Controllers
             var user = _users.Update(id, update);
             return new UserResponse(user);
         }
-        
+
         [HttpDelete("{id}")]
         public IActionResult Delete([FromRoute] int id)
         {

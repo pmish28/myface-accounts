@@ -12,6 +12,7 @@ namespace MyFace.Repositories
         IEnumerable<User> Search(UserSearchRequest search);
         int Count(UserSearchRequest search);
         User GetById(int id);
+        bool IsUserAuthorised(string userName , string password);
         User Create(CreateUserRequest newUser);
         User Update(int id, UpdateUserRequest update);
         void Delete(int id);
@@ -58,6 +59,16 @@ namespace MyFace.Repositories
             return _context.Users
                 .Single(user => user.Id == id);
         }
+
+        public User GetByUsername(string username){
+            return _context.Users.Single(user => user.Username == username);
+        }
+
+       public bool IsUserAuthorised(string username,string password){
+          byte[] salt = GetByUsername(username).Salt;
+          string hashedPassword = HashPassword.GenerateHashPasswordWithExistingSalt(password,salt); 
+          return _context.Users.Any(u=>u.Username == username && (u.Hashed_password == hashedPassword));            
+       }
 
         public User Create(CreateUserRequest newUser)
         {
